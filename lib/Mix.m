@@ -1,4 +1,3 @@
-
 classdef Mix < handle    
     properties
         Name
@@ -6,12 +5,18 @@ classdef Mix < handle
         Fractions
         HEOS
         UnableToCompute
+        fallback
+        %Tcrit
+        %pcrit
+        %Ttriple
+        %ptriple
     end
     
     methods
         
         function obj = Mix(name,gases,fractions)
-            obj.Name = name;            
+            obj.Name = name;        
+            obj.fallback = false;
             if nargin == 3                        
                 if length(gases)~=length(fractions)
                     error('Wrong input!')            
@@ -24,6 +29,7 @@ classdef Mix < handle
                 obj.HEOS = CoolProp.AbstractState.factory('HEOS',obj.Gases);
                 obj.HEOS.set_mole_fractions(obj.Fractions);
                 obj.HEOS.build_phase_envelope('dummy')     
+                obj.fallback = true;
             elseif nargin == 2
                 obj.Gases = gases;                
                 obj.Fractions = 1.0;
@@ -36,7 +42,7 @@ classdef Mix < handle
             end
             try
                 obj.UnableToCompute = false;
-                obj.update('P',ptriple,'Q',0.0);
+                obj.update('P',obj.ptriple*10,'Q',1.0);
             catch
                 obj.UnableToCompute = true;
             end
@@ -52,16 +58,13 @@ classdef Mix < handle
         
         function T = Ttriple(obj)
             T = obj.HEOS.Ttriple();            
-        end
-        
+        end   
         function p = ptriple(obj)
             p = obj.HEOS.p_triple();            
         end
-        
         function T = Tcrit(obj)
             T = obj.HEOS.T_critical();
-        end
-        
+        end      
         function p = pcrit(obj)
             p = obj.HEOS.p_critical();
         end
@@ -78,27 +81,78 @@ classdef Mix < handle
                 inputB = B;
             end                        
             if A<B
-                try
-                    obj.UnableToCompute = false;
-                    obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputA,inputB)),a,b);
-                catch ME
-                    obj.UnableToCompute = true;
-                    %rethrow(ME)
+                s = sprintf('%s%s_INPUTS',inputA,inputB);
+                if ~obj.fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
+                    try
+                        obj.UnableToCompute = false;
+                        obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputA,inputB)),a,b);
+                    catch ME
+                        obj.UnableToCompute = true;
+                        %rethrow(ME)
+                    end
+                else
+                    if A=='Q' || B=='Q'
+                        f = @(x) obj.PQsearch(A,a,B,b,x(1),x(2));
+                        Out = obj.get_state;
+                        if isnan(Out.P)
+                            Out = obj.update('P',obj.ptriple*10,'Q',1.0);
+                        end
+                        fminsearch(f,[Out.P,Out.Q]);
+                    else
+                        %disp('Hei 1')
+                        f = @(x) obj.PTsearch(A,a,B,b,x(1),x(2));
+                        Out = obj.get_state;
+                        if isnan(Out.P)
+                            Out = obj.update('P',obj.ptriple*10,'Q',1.0);
+                        end
+                        fminsearch(f,[Out.P,Out.T]);
+                    end
                 end
             else
-                try
-                    obj.UnableToCompute = false;
-                    obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputB,inputA)),b,a);
-                catch ME
-                    obj.UnableToCompute = true;
-                    %rethrow(ME)
+                s = sprintf('%s%s_INPUTS',inputB,inputA);
+                if ~obj.fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
+                    try
+                        obj.UnableToCompute = false;
+                        obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputB,inputA)),b,a);
+                    catch ME
+                        obj.UnableToCompute = true;
+                        %rethrow(ME)
+                    end
+                else
+                    if A=='Q' || B=='Q'
+                        f = @(x) obj.PQsearch(A,a,B,b,x(1),x(2));
+                        Out = obj.get_state;
+                        if isnan(Out.P)
+                            Out = obj.update('P',obj.ptriple*10,'Q',1.0);
+                        end
+                        fminsearch(f,[Out.P,Out.Q]);
+                    else
+                        %disp('Hei 2')
+                        Out = obj.get_state;
+                        if isnan(Out.P)
+                            Out = obj.update('P',obj.ptriple*10,'Q',1.0);
+                        end
+                        if A == 'P'
+                            %disp('Hei 3')
+                            f = @(x) obj.PTsearch(A,a,B,b,a,x);
+                            fminsearch(f,Out.T);
+                        elseif B == 'P'
+                            %disp('Hei 4')
+                            f = @(x) obj.PTsearch(A,a,B,b,b,x);
+                            fminsearch(f,Out.T);
+                        else
+                            %disp('Hei 5')
+                            f = @(x) obj.PTsearch(A,a,B,b,x(1),x(2));
+                            fminsearch(f,[Out.P,Out.T]);
+                        end
+                    end
                 end
             end
             output = obj.get_state;
         end
         
         function output = change(obj,A,a,B,b,InitialState)
-            if nargin<6 && (isa(a,'function_handle') || isa(b,'function_handle'))
+            if nargin<6
                 InitialState = obj.get_state;
             end
             if isnumeric(a)
@@ -231,6 +285,40 @@ classdef Mix < handle
         function output = MyPropsSI(obj,Y,A,a,B,b)
             output = obj.update(A,a,B,b).(Y);
         end        
+        
+        function y = PTsearch(obj,A,a,B,b,p,t)
+            obj.UnableToCompute = false;
+            try
+                obj.HEOS.update(CoolProp.PT_INPUTS,p,t);
+            catch
+                obj.UnableToCompute = true;
+            end
+            Out = obj.get_state; 
+            y = norm([Out.(A)-a,Out.(B)-b]);
+        end
+
+        function y = QTsearch(obj,A,a,B,b,q,t)
+            obj.UnableToCompute = false;
+            try
+                obj.HEOS.update(CoolProp.QT_INPUTS,q,t);
+            catch
+                obj.UnableToCompute = true;                
+            end
+            Out = obj.get_state;
+            y = norm([Out.(A)-a,Out.(B)-b]);
+        end
+
+        function y = QPsearch(obj,A,a,B,b,q,p)
+            obj.UnableToCompute = false;
+            try
+                obj.HEOS.update(CoolProp.QP_INPUTS,q,p);
+            catch
+                obj.UnableToCompute = true;
+            end
+            Out = obj.get_state;
+            y = norm([Out.(A)-a,Out.(B)-b]);
+        end
+        
         
     end    
 end
