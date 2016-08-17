@@ -9,21 +9,23 @@ t0 = 12;
 T = {-40, -102, -160};
 Refrigerants = {'R290','R1150','R50'};
 
-Options = LazyOptions({},DefaultOptions);
+MySettings = {...
+    'OverHeating','on',...
+    'OverHeatTo','NextTemperature'};
 
-Options.OverHeating = 'off';
-Options.OverHeatTo = 'NextTemperature';
+Options = LazyOptions(MySettings,DefaultOptions);
 
-alternative = 2;
+alternative = 3;
 
-if alternative == 2
+if alternative == 1
     fluid       = {'R50','R170','R728','R290','R600','R600a'};
     fractions   = [0.8770,0.0540,0.031,0.0260,0.0080,0.0040];    
-    NG = Mix('NatureGas',fluid,fractions);
-else
+    NG = Mix('NaturalGas',fluid,fractions);
+elseif alternative == 2
     NG = Mix('Methane');
+else
+    NG = NaturalGas('NaturalGas'); 
 end
-
 NG0 = NG.update('P',60e5,'T',kelvin(t0+Options.TemperatureDifference));
 
 MyCascade.(Refrigerants{1}) = T{1};
@@ -56,15 +58,15 @@ for i = 1:length(Cooler.Circuits)
     fprintf(' %d ',Cooler.Circuits{i}.UsedHeatExchangers)
     fprintf(']\n')        
 end
-%%
-
 
 figures.(NG.Name) = figure;
 
-if alternative == 1
+if alternative == 3
     PlotNG
-else
+elseif alternative == 2
     PlotPH(NG,'pwindow',[50e5 70e5])
+else
+    disp('No Plot')
 end
 hold on
 

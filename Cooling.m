@@ -3,7 +3,7 @@ function [ output ] = Cooling( Gas, InitialState, CoolingTemperatures, varargin)
     
     [CoolingTemperatures, Order] = sort(CoolingTemperatures,'descend');
     
-    if ~isa(Gas,'Mix')
+    if ~isa(Gas,'Mix') && ~isa(Gas,'NaturalGas')
         error('Wrong Input!')
     end
     
