@@ -1,12 +1,13 @@
 function [  ] = PlotPH( Gas, varargin )    
-    assert(isa(Gas,'Mix'))    
+    assert(isa(Gas,'Mix'))
     
     ptriple  = Gas.ptriple;    
     Ttriple  = Gas.Ttriple;
     TQ0      = Gas.update('P',ptriple,'Q',0.0);
     TQ1      = Gas.update('P',ptriple,'Q',1.0);    
-    hwindow  = [TQ0.H,TQ1.H+(TQ1.H-TQ0.H)];
+    hwindow  = [TQ0.H,TQ1.H+(TQ1.H-TQ0.H)*2];
     pwindow  = [ptriple, 1e7];
+    
     Options = LazyOptions(varargin, ...
         'pwindow',      pwindow, ...
         'hwindow',      hwindow, ...
@@ -14,18 +15,19 @@ function [  ] = PlotPH( Gas, varargin )
         'Isotherms',    {'on','off'}, ...
         'Isentropics',  {'on','off'}, ...
         'GasQuality',   {'on','off'}, ...
-        'UseCritical',  {'auto','on','off'},...
-        'NoWarnings',   {'on','off'});
+        'UseCritical',  {'auto','on','off'}, ...
+        'NoWarnings',   {'on','off'}, ...
+        'TemperaturesC', -250:25:200);
 
-    CheckOption = @(opt,status) strcmpi(Options.(opt),status);
+    % CheckOption = @(opt,status) strcmpi(Options.(opt),status);
     
-    if CheckOption('NoWarnings','on')
+    if CheckOption(Options,'NoWarnings','on')
         orig_state = warning;
         warning('off','all');   
     end   
     
-    if CheckOption('UseCritical','auto')
-        if ~Gas.fallback
+    if CheckOption(Options,'UseCritical','auto')
+        if ~Gas.Fallback
             if ~isnan(Gas.Tcrit)
                 Options.UseCritical = 'on';
             else
@@ -37,7 +39,7 @@ function [  ] = PlotPH( Gas, varargin )
     end
     
     % Must redefine CheckOptions-function
-    CheckOption = @(opt,status) strcmpi(Options.(opt),status);
+    % CheckOption = @(opt,status) strcmpi(Options.(opt),status);
     
     clf
     hold on
@@ -47,10 +49,10 @@ function [  ] = PlotPH( Gas, varargin )
     pwindow = [min(Options.pwindow), max(Options.pwindow)];
     hwindow = [min(Options.hwindow), max(Options.hwindow)];
    
-    if CheckOption('Isotherms','on') || ...
-            CheckOption('Isentropics','on') || ...
-            CheckOption('PhaseEnvelope','on') || ...
-            CheckOption('GasQuality','on')
+    if CheckOption(Options,'Isotherms','on') || ...
+            CheckOption(Options,'Isentropics','on') || ...
+            CheckOption(Options,'PhaseEnvelope','on') || ...
+            CheckOption(Options,'GasQuality','on')
                 
         pp = logspace(log10(pwindow(1)),log10(pwindow(2)),100);
         hh = linspace(hwindow(1),hwindow(2),100);
@@ -67,14 +69,14 @@ function [  ] = PlotPH( Gas, varargin )
         %    HH = contour
     end
     
-    if CheckOption('Isotherms','on')                        
-        contour(HH/1e3,PP/1e5,celsius(GridData.T),-250:25:200,'--',...
-            'ShowText','on','TextList',-200:50:100,'LabelSpacing',500)        
+    if CheckOption(Options,'Isotherms','on')                        
+        contour(HH/1e3,PP/1e5,celsius(GridData.T),Options.TemperaturesC,'--',...
+            'ShowText','on','TextList',Options.TemperaturesC,'LabelSpacing',400)        
     end 
     
-    if CheckOption('PhaseEnvelope','on')
+    if CheckOption(Options,'PhaseEnvelope','on')
         
-        if CheckOption('UseCritical','on')
+        if CheckOption(Options,'UseCritical','on')
                 
             crit = Gas.update('P',Gas.pcrit,'T',Gas.Tcrit);
             
@@ -136,9 +138,9 @@ function [  ] = PlotPH( Gas, varargin )
         
     end
     
-    if CheckOption('GasQuality','on')
+    if CheckOption(Options,'GasQuality','on')
     
-        %if CheckOption('UseCritical','on')
+        %if CheckOption(Options,'UseCritical','on')
 %            contour(HH/1e3,PP/1e5,GridData.Q,0.1:0.1:0.9,'--','ShowText','on','TextList',[0.2,0.5,0.8],'LabelSpacing',500)
        %      pcrit = Gas.pcrit;
        %      pVec = logspace(log10(ptriple),log10(pcrit),101);
@@ -155,7 +157,7 @@ function [  ] = PlotPH( Gas, varargin )
         
     end          
     
-    if CheckOption('Isentropics','on')        
+    if CheckOption(Options,'Isentropics','on')        
         contour(HH/1e3,PP/1e5,GridData.S,':k')        
     end
     
@@ -166,8 +168,8 @@ function [  ] = PlotPH( Gas, varargin )
     ax.YLim = pwindow/1e5;
     ax.Box = 'on';
     
-    if CheckOption('Isotherms','on')
-        caxis([-250,200]);
+    if CheckOption(Options,'Isotherms','on')
+        caxis([min(Options.TemperaturesC) max(Options.TemperaturesC)]);
     end
     
     xlabel('Enthalpy [kJ/kg]')
@@ -176,7 +178,7 @@ function [  ] = PlotPH( Gas, varargin )
     
     
     
-    if CheckOption('NoWarnings','on')
+    if CheckOption(Options,'NoWarnings','on')
         warning(orig_state);
     end
 end

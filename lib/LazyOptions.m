@@ -3,7 +3,11 @@ function [ options ] = LazyOptions( input, varargin )
     if length(varargin)==1
         list = fields(varargin{1});
         for k = 1:length(list)
-            p.addParameter(list{k},varargin{1}.(list{k}));
+            if iscell(varargin{1}.(list{k})) 
+                p.addParameter(list{k},varargin{1}.(list{k}){1}, @(s) strcmp(s,validatestring(s,varargin{1}.(list{k}))));
+            else
+                p.addParameter(list{k},varargin{1}.(list{k}));
+            end
         end
     else
         for k = 1:floor(length(varargin)/2)

@@ -36,12 +36,13 @@ classdef Mix < handle
                 obj.Fractions = 1.0;
                 obj.HEOS = CoolProp.AbstractState.factory('HEOS',obj.Gases);            
             end
-            try
-                obj.UnableToCompute = false;
-                obj.update('P',obj.ptriple*10,'Q',1.0);
-            catch
-                obj.UnableToCompute = true;
-            end
+            obj.UnableToCompute = true;
+            %try
+            %    obj.UnableToCompute = false;
+            %    obj.update('P',obj.ptriple*10,'Q',1.0);
+            %catch
+            %    obj.UnableToCompute = true;
+            %end
                 
         end
         
@@ -77,7 +78,7 @@ classdef Mix < handle
                 if ~obj.Fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
                     try
                         obj.UnableToCompute = false;
-                        obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputA,inputB)),a,b);
+                        obj.HEOS.update(CoolProp.(s),a,b);
                     catch ME
                         obj.UnableToCompute = true;
                         % rethrow(ME)
@@ -104,7 +105,7 @@ classdef Mix < handle
                 if ~obj.Fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
                     try
                         obj.UnableToCompute = false;
-                        obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputB,inputA)),b,a);
+                        obj.HEOS.update(CoolProp.(s),b,a);
                     catch ME
                         obj.UnableToCompute = true;
                         % rethrow(ME)
@@ -115,8 +116,9 @@ classdef Mix < handle
                         Out = obj.get_state;
                         if isnan(Out.P)
                             Out = obj.update('P',obj.ptriple*10,'Q',1.0);
-                        end
-                        fminsearch(f,[Out.P,Out.Q]);
+                        end                        
+                        x = fminsearch(f,[Out.P,Out.Q]);
+                        obj.update('P',x(1),'Q',x(2)); % Fix
                     else
                         Out = obj.get_state;
                         if isnan(Out.P)
@@ -124,13 +126,16 @@ classdef Mix < handle
                         end
                         if A == 'P'
                             f = @(x) obj.PTsearch(A,a,B,b,a,x);
-                            fminsearch(f,Out.T);
+                            x = fminsearch(f,Out.T);
+                            obj.update('P',a,'T',x); % Fix
                         elseif B == 'P'
                             f = @(x) obj.PTsearch(A,a,B,b,b,x);
-                            fminsearch(f,Out.T);
+                            x = fminsearch(f,Out.T);
+                            obj.update('P',b,'T',x); % Fix
                         else                            
                             f = @(x) obj.PTsearch(A,a,B,b,x(1),x(2));
-                            fminsearch(f,[Out.P,Out.T]);
+                            x = fminsearch(f,[Out.P,Out.T]);
+                            obj.update('P',x(1),'T',x(2)); % Fix
                         end
                     end
                 end
@@ -288,7 +293,7 @@ classdef Mix < handle
             y = norm([Out.(A)-a,Out.(B)-b]);
         end
 
-        function y = QPsearch(obj,A,a,B,b,q,p)
+        function y = PQsearch(obj,A,a,B,b,q,p)
             obj.UnableToCompute = false;
             try
                 obj.HEOS.update(CoolProp.QP_INPUTS,q,p);
