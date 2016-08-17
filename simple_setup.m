@@ -3,8 +3,6 @@ close all
 setup
 autodock
 
-
-
 t0 = 12;
 T = {-40, -102, -160};
 Refrigerants = {'R290','R1150','R50'};
