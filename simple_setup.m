@@ -14,14 +14,12 @@ Options = LazyOptions({},DefaultOptions);
 Options.OverHeating = 'off';
 Options.OverHeatTo = 'NextTemperature';
 
-alternative = 1;
-if alternative == 1
-    fluid       = {'R50','R170','R728','R290','R600','R600a'};
-    fractions   = [0.8770,0.0540,0.031,0.0260,0.0080,0.0040];
+alternative = 2;
 
-    %if ~exist('NG','var') || ~isa(NG,'Mix')    
+if alternative == 2
+    fluid       = {'R50','R170','R728','R290','R600','R600a'};
+    fractions   = [0.8770,0.0540,0.031,0.0260,0.0080,0.0040];    
     NG = Mix('NatureGas',fluid,fractions);
-    %end
 else
     NG = Mix('Methane');
 end
@@ -58,12 +56,16 @@ for i = 1:length(Cooler.Circuits)
     fprintf(' %d ',Cooler.Circuits{i}.UsedHeatExchangers)
     fprintf(']\n')        
 end
-
+%%
 
 
 figures.(NG.Name) = figure;
 
-PlotNG
+if alternative == 1
+    PlotNG
+else
+    PlotPH(NG,'pwindow',[50e5 70e5])
+end
 hold on
 
 P = [];
@@ -75,19 +77,19 @@ end
 plot(H/1e3,P/1e5,'-o','LineWidth',2), hold off
 
 
-return 
-
-figure
-t = [];
-q = cumsum([0, cell2mat(Gas.DeltaH)]);
-
-for i = 1:length(Gas.States)
-    t(i) = celsius(Gas.States{i}.T);
-end
-
-tc = sort([Cooler.MyTemperatures(2:end),Cooler.MyTemperatures(2:end)],'descend') ;
-qc = sort([q,q(2:end-1)]);
-
-plot(q/1e3,t,qc/1e3,tc)
+% return 
+% 
+% figure
+% t = [];
+% q = cumsum([0, cell2mat(Gas.DeltaH)]);
+% 
+% for i = 1:length(Gas.States)
+%     t(i) = celsius(Gas.States{i}.T);
+% end
+% 
+% tc = sort([Cooler.MyTemperatures(2:end),Cooler.MyTemperatures(2:end)],'descend') ;
+% qc = sort([q,q(2:end-1)]);
+% 
+% plot(q/1e3,t,qc/1e3,tc)
 
 % SaveAllOpenFigures('fig',-1)
