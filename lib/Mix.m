@@ -5,18 +5,14 @@ classdef Mix < handle
         Fractions
         HEOS
         UnableToCompute
-        fallback
-        %Tcrit
-        %pcrit
-        %Ttriple
-        %ptriple
+        Fallback
     end
     
     methods
         
         function obj = Mix(name,gases,fractions)
             obj.Name = name;        
-            obj.fallback = false;
+            obj.Fallback = false;
             if nargin == 3                        
                 if length(gases)~=length(fractions)
                     error('Wrong input!')            
@@ -29,7 +25,7 @@ classdef Mix < handle
                 obj.HEOS = CoolProp.AbstractState.factory('HEOS',obj.Gases);
                 obj.HEOS.set_mole_fractions(obj.Fractions);
                 obj.HEOS.build_phase_envelope('dummy')     
-                obj.fallback = true;
+                obj.Fallback = true;
             elseif nargin == 2
                 obj.Gases = gases;                
                 obj.Fractions = 1.0;
@@ -49,22 +45,18 @@ classdef Mix < handle
                 
         end
         
-        %function get_points(obj)
-        %    obj.Ttriple = obj.HEOS.Ttriple();
-        %    obj.ptriple = obj.HEOS.p_triple();            
-            %obj.Tcrit   = obj.HEOS.T_critical();
-            %obj.pcrit   = obj.HEOS.p_critical();            
-        %end
-        
         function T = Ttriple(obj)
             T = obj.HEOS.Ttriple();            
         end   
+        
         function p = ptriple(obj)
             p = obj.HEOS.p_triple();            
         end
+        
         function T = Tcrit(obj)
             T = obj.HEOS.T_critical();
-        end      
+        end
+        
         function p = pcrit(obj)
             p = obj.HEOS.p_critical();
         end
@@ -82,13 +74,13 @@ classdef Mix < handle
             end                        
             if A<B
                 s = sprintf('%s%s_INPUTS',inputA,inputB);
-                if ~obj.fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
+                if ~obj.Fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
                     try
                         obj.UnableToCompute = false;
                         obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputA,inputB)),a,b);
                     catch ME
                         obj.UnableToCompute = true;
-                        %rethrow(ME)
+                        % rethrow(ME)
                     end
                 else
                     if A=='Q' || B=='Q'
@@ -99,7 +91,6 @@ classdef Mix < handle
                         end
                         fminsearch(f,[Out.P,Out.Q]);
                     else
-                        %disp('Hei 1')
                         f = @(x) obj.PTsearch(A,a,B,b,x(1),x(2));
                         Out = obj.get_state;
                         if isnan(Out.P)
@@ -110,13 +101,13 @@ classdef Mix < handle
                 end
             else
                 s = sprintf('%s%s_INPUTS',inputB,inputA);
-                if ~obj.fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
+                if ~obj.Fallback || strcmp(s,'PQ_INPUTS') || strcmp(s,'QT_INPUTS') || strcmp(s,'PT_INPUTS')
                     try
                         obj.UnableToCompute = false;
                         obj.HEOS.update(CoolProp.(sprintf('%s%s_INPUTS',inputB,inputA)),b,a);
                     catch ME
                         obj.UnableToCompute = true;
-                        %rethrow(ME)
+                        % rethrow(ME)
                     end
                 else
                     if A=='Q' || B=='Q'
@@ -127,21 +118,17 @@ classdef Mix < handle
                         end
                         fminsearch(f,[Out.P,Out.Q]);
                     else
-                        %disp('Hei 2')
                         Out = obj.get_state;
                         if isnan(Out.P)
                             Out = obj.update('P',obj.ptriple*10,'Q',1.0);
                         end
                         if A == 'P'
-                            %disp('Hei 3')
                             f = @(x) obj.PTsearch(A,a,B,b,a,x);
                             fminsearch(f,Out.T);
                         elseif B == 'P'
-                            %disp('Hei 4')
                             f = @(x) obj.PTsearch(A,a,B,b,b,x);
                             fminsearch(f,Out.T);
-                        else
-                            %disp('Hei 5')
+                        else                            
                             f = @(x) obj.PTsearch(A,a,B,b,x(1),x(2));
                             fminsearch(f,[Out.P,Out.T]);
                         end
@@ -161,7 +148,6 @@ classdef Mix < handle
                         if length(b) == 1
                             output = obj.update(A,a,B,b);
                         else
-                            % output = size(b);
                             output.H = zeros(size(b));
                             output.P = zeros(size(b));
                             output.Q = zeros(size(b));
@@ -169,7 +155,6 @@ classdef Mix < handle
                             output.T = zeros(size(b));
                             output.U = zeros(size(b));
                             for i = 1:length(b(:))
-                                % output(i) = obj.update(A,a,B,b(i));
                                 out = obj.update(A,a,B,b(i));
                                 output.H(i) = out.H;
                                 output.P(i) = out.P;
@@ -189,7 +174,6 @@ classdef Mix < handle
                 else
                     if isnumeric(b)
                         if length(b) == 1
-                            % output = size(a);
                             output.H = zeros(size(a)); 
                             output.P = zeros(size(a));
                             output.Q = zeros(size(a));
@@ -197,7 +181,6 @@ classdef Mix < handle
                             output.T = zeros(size(a));
                             output.U = zeros(size(a));    
                             for i = 1:length(a(:))
-                                % output(i) = obj.update(A,a(i),B,b);
                                 out = obj.update(A,a(i),B,b);
                                 output.H(i) = out.H;
                                 output.P(i) = out.P;
@@ -207,16 +190,15 @@ classdef Mix < handle
                                 output.U(i) = out.U;                                
                             end                            
                         else
-                            if isequal(size(a), size(b)) || (isvector(a) && isvector(b) && numel(a) == numel(b))
-                                % output = size(a);
+                            if isequal(size(a), size(b)) || ...
+                                    (isvector(a) && isvector(b) && numel(a) == numel(b))
                                 output.H = zeros(size(a)); 
                                 output.P = zeros(size(a));
                                 output.Q = zeros(size(a));
                                 output.S = zeros(size(a));
                                 output.T = zeros(size(a));
                                 output.U = zeros(size(a));    
-                                for i = 1:length(a(:))
-                                    %output(i) = obj.update(A,a(i),B,b(i));                            
+                                for i = 1:length(a(:))                           
                                     out = obj.update(A,a(i),B,b(i));
                                     output.H(i) = out.H;
                                     output.P(i) = out.P;
@@ -240,7 +222,6 @@ classdef Mix < handle
                         if length(b) == 1
                             output = obj.update(A,a(InitialState.(A)),B,b);
                         else
-                            % output = size(b);
                             output.H = zeros(size(a));
                             output.P = zeros(size(a));
                             output.Q = zeros(size(a));
@@ -248,7 +229,6 @@ classdef Mix < handle
                             output.T = zeros(size(a));
                             output.U = zeros(size(a));
                             for i = 1:length(b(:))
-                                % output(i) = obj.update(A,a(InitialState.(A)),B,b(i));
                                 out = obj.update(A,a(InitialState.(A)),B,b(i));
                                 output.H(i) = out.H;
                                 output.P(i) = out.P;
