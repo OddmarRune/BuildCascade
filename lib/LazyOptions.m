@@ -22,12 +22,12 @@ function [ options ] = LazyOptions( input, varargin )
         end
     end    
     
-    if isa(input,'struct')
-        disp('test')
+    if isa(input,'struct')        
         list = fields(input);
         Input = {};
-        for k = 1:length(list)
-            Input = [ Input, list{k}, input.(list{k})];            
+        for k = 1:length(list)            
+            Input{2*k-1} = list{k};
+            Input{2*k} = input.(list{k});
         end                
     else
         % Assume input is a cell array        

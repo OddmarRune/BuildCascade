@@ -3,7 +3,7 @@ function [ CompressedState, Eta ] = Compressor( Gas, InitialState, FinalPressure
         'pr_base',  3,...
         'eta_base', 0.85);
     
-    if isa(Gas,'char') && strcmpi(Gas,'DisplayName')
+    if nargin<1 || (isa(Gas,'char') && strcmpi(Gas,'DisplayName'))
         CompressedState = sprintf('VarEta%g_%g',Options.pr_base,Options.eta_base);
         return
     end
