@@ -5,7 +5,7 @@ function [  ] = PlotPH( Gas, varargin )
     Ttriple  = Gas.Ttriple;
     TQ0      = Gas.update('P',ptriple,'Q',0.0);
     TQ1      = Gas.update('P',ptriple,'Q',1.0);    
-    hwindow  = [TQ0.H,TQ1.H+(TQ1.H-TQ0.H)*2];
+    hwindow  = [TQ0.H,TQ1.H+(TQ1.H-TQ0.H)*1];
     pwindow  = [ptriple, 1e7];
     
     Options = LazyOptions(varargin, ...
@@ -17,7 +17,7 @@ function [  ] = PlotPH( Gas, varargin )
         'GasQuality',   {'on','off'}, ...
         'UseCritical',  {'auto','on','off'}, ...
         'NoWarnings',   {'on','off'}, ...
-        'TemperaturesC', -250:25:200);
+        'TemperaturesC', -250:25:250);
 
     % CheckOption = @(opt,status) strcmpi(Options.(opt),status);
     

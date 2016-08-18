@@ -2,6 +2,11 @@ function [ CompressedState, Eta ] = Compressor( Gas, InitialState, FinalPressure
     Options = LazyOptions(varargin,...
         'pr_base',  3,...
         'eta_base', 0.85);
+    
+    if isa(Gas,'char') && strcmpi(Gas,'DisplayName')
+        CompressedState = sprintf('VarEta%g_%g',Options.pr_base,Options.eta_base);
+        return
+    end
     assert(isa(Gas,'Mix'),'Wrong input type: Gas should be object of class Mix.') 
    
     % Helping Function

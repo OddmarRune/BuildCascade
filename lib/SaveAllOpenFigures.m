@@ -1,15 +1,24 @@
-function [  ] = SaveAllOpenFigures( path, width, removetitle )
-    if nargin<2
-        width = -2;
+function [  ] = SaveAllOpenFigures( varargin ) 
+    Options = LazyOptions(varargin,...
+        'path', '.', ...
+        'width', -2, ...
+        'removetitle', {'on','off'}, ...
+        'filename','');     
+
+    handles = findall(0,'type','figure');
+    removetitle = CheckOption(Options,'removetitle','on');
+
+    if strcmp(Options.filename,'')
+        filename = '';
+    else
+        filename = sprintf('%s_',Options.filename);
     end
-    if nargin<3
-        removetitle = true;
-    end 
-    handles=findall(0,'type','figure');
+    
     for i = 1:length(handles)
-        name = sprintf('%s/figure_%d.tiff',path,i);
+        name = sprintf('%s/%sfigure_%d.tiff',Options.path,filename,i);
         figure(handles(i))
-        MySavePlot(name,width,removetitle)
+        MySavePlot(name,Options.width,removetitle)
+        savefig(sprintf('%s/%sfigure_%d',Options.path,filename,i));
     end
 end
 

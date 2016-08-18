@@ -3,15 +3,17 @@ close all
 setup
 autodock
 
-t0 = 12;
-T = {-40, -102, -160};
+t0 = 10;
+T = {[ -17.47, -38.47 ],[ -71.50, -102.36 ],[ -134.32, -160 ]};
 Refrigerants = {'R290','R1150','R50'};
 
-MySettings = {...
+MySettings.Options = {...
     'OverHeating','on',...
-    'OverHeatTo','NextTemperature'};
-
-Options = LazyOptions(MySettings,DefaultOptions);
+    'OverHeatTo','NextTemperature',...
+    'Compressor', @(Gas,InitialState,FinalPressure) ...
+       SimpleCompressor( Gas, InitialState, FinalPressure,'eta',0.85)};
+    
+Options = LazyOptions(MySettings.Options,DefaultOptions);
 
 alternative = 3;
 
@@ -26,6 +28,9 @@ else
 end
 NG0 = NG.update('P',60e5,'T',kelvin(t0+Options.TemperatureDifference));
 
+
+T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
+
 MyCascade.(Refrigerants{1}) = T{1};
 MyCascade.(Refrigerants{2}) = T{2};
 MyCascade.(Refrigerants{3}) = T{3};
@@ -39,8 +44,9 @@ COP = (Gas.States{1}.H-Gas.States{end}.H)/SpecificEnergy
 
 kWh_per_ton = SpecificEnergy/3.6e3
 
-figures = struct;
+return 
 
+figures = struct;
 for i = 1:length(Refrigerants)
     figures.(Refrigerants{i}) = figure;
     PlotPH(Mix(Refrigerants{i}),'pwindow',[1e4,1e7]), hold on

@@ -21,7 +21,19 @@ function [ options ] = LazyOptions( input, varargin )
             error('Missing default value for parameter: %s',varargin{end})
         end
     end    
-    p.parse(input{:});
+    
+    if isa(input,'struct')
+        disp('test')
+        list = fields(input);
+        Input = {};
+        for k = 1:length(list)
+            Input = [ Input, list{k}, input.(list{k})];            
+        end                
+    else
+        % Assume input is a cell array        
+        Input = input;
+    end    
+    p.parse(Input{:});
     options = p.Results;
 end
 
