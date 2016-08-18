@@ -1,6 +1,7 @@
 % DataGen
 
 % Denne treng i grunnen berre køyrast ein gong kvar gong du startar matlab.
+clear 
 setup
 
 Options.MaxGenerations = 100;
