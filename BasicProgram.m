@@ -23,7 +23,7 @@ MyCascade
 
 Cooler = Cascade(t0,T,Refrigerants,Options);
 Gas    = Cooling(NG,NG0,Cooler.Temperatures,Options);
-Mass   = FindMassTransport(Cooler,Gas)
+[Mass,Eq]   = FindMassTransportSymbolic(Cooler,Gas)
 SpecificEnergy = CalculateSpecificEnergy(Cooler, Mass)
 COP = (Gas.States{1}.H-Gas.States{end}.H)/SpecificEnergy
 
