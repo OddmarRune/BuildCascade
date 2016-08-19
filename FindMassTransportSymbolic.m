@@ -35,7 +35,11 @@ function [ m, Eq ] = FindMassTransportSymbolic( Cooler, Gas )
         error('Unsolvable')
     end
     ms = sym('m_%d',[1 N+1]);
+    mg = ms(1);
     ms = ms(2:end);
-    Eq = As*ms(:)-bs(:);
+    LHS = As*ms(:) - bs(:)*mg;
+    LHS(N+1) = mg-1;
+    Eq = LHS == 0;
+    
 end
 

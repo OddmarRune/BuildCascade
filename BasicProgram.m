@@ -11,8 +11,6 @@ Options.Compressor = @Compressor;
 
 Options = LazyOptions(Options,DefaultOptions);
 
-return
-
 NG  = NaturalGas('NaturalGas'); 
 NG0 = NG.update('P',60e5,'T',kelvin(t0+Options.TemperatureDifference));
 
@@ -28,6 +26,8 @@ SpecificEnergy = CalculateSpecificEnergy(Cooler, Mass)
 COP = (Gas.States{1}.H-Gas.States{end}.H)/SpecificEnergy
 
 kWh_per_ton = SpecificEnergy/3.6e3
+
+return
 
 figures = struct;
 for i = 1:length(Refrigerants)
