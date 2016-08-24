@@ -8,9 +8,10 @@ function [ ] = PlotNG( )
     
     h = h_NG(p,tstart+273.15);
     semilogy(h/1e3,p/1e5,'--r'), hold on, grid on
-    for t = (tstart+10):10:twindow(2)
+    for t = (tstart+10):20:twindow(2)
         h = h_NG(p,t+273.15);
         plot(h/1e3,p/1e5,'--r')
+        % text(max(h)/1e3,max(p)/1e5,sprintf('%d',t),'HorizontalAlignment','center');
     end
     hold off    
     xlabel('Enthalpy [kJ/kg]')
