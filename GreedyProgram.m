@@ -1,0 +1,89 @@
+clear
+setup
+
+t0 = 10;
+%T = {[10,-38.443],[-71.499,-102.36],[-129.92,-160]};
+
+TempVec = -159:2:(t0-1);
+
+Refrigerants = {'R290','R1150', 'R50'};
+T            = {  -40 ,  -102 , -160 };
+
+Options.OverHeating = 'on';
+Options.OverHeatTo = 'NextTemperature';  
+Options.Compressor = @SimpleCompressor;
+Options.MaxGenerations = 200;
+Options.GeneticDisplay = 'off';
+
+Options = LazyOptions(Options,DefaultOptions);
+
+NG  = NaturalGas('NaturalGas'); 
+NG0 = NG.update('P',60e5,'T',kelvin(t0+Options.TemperatureDifference));
+
+
+MyFig = figure('Name','Greedy Search'); hold on
+
+orig_state = warning;
+warning('off','all');
+
+steps = 6;
+
+MinEnergy = 400*3.6e3;
+n = 0;
+while (MinEnergy/3.6e3)>200 && n<steps
+    n = n+1;
+    [ T,MinTemperature,MinIndex,MinEnergy,Energies ] = ...
+        GreedyStep( NG,NG0,t0,T,TempVec,Refrigerants,Options);
+    plot(TempVec,Energies/3.6e3,MinTemperature,MinEnergy/3.6e3,'o')    
+    fprintf('%2d: adding a step to refrigerant nr %d at temperature %.3g \n',n,MinIndex,MinTemperature)    
+    T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
+end
+
+warning(orig_state);
+hold off
+
+
+MyCascade.(Refrigerants{1}) = T{1};
+MyCascade.(Refrigerants{2}) = T{2};
+MyCascade.(Refrigerants{3}) = T{3};
+MyCascade
+
+Cooler = Cascade(t0,T,Refrigerants,Options);
+Gas    = Cooling(NG,NG0,Cooler.Temperatures,Options);
+[Mass,Eq]   = FindMassTransportSymbolic(Cooler,Gas)
+SpecificEnergy = CalculateSpecificEnergy(Cooler, Mass)
+COP = (Gas.States{1}.H-Gas.States{end}.H)/SpecificEnergy
+
+kWh_per_ton = SpecificEnergy/3.6e3
+
+
+figures = struct;
+for i = 1:length(Refrigerants)
+    figures.(Refrigerants{i}) = figure;
+    PlotPH(Mix(Refrigerants{i}),'pwindow',[1e4,1e7]), hold on
+end
+
+for i = 1:length(Cooler.Circuits)
+    figure(figures.(Cooler.Circuits{i}.Refrigerant.Name));
+    PlotProcess(Cooler.Circuits{i}.States,'ProcessName',Cooler.Circuits{i}.MyHeatExchangerNr)
+    str1 = sprintf('ExNr: %2d, %6s, %5.3g, [',...
+        Cooler.Circuits{i}.MyHeatExchangerNr,...
+        Cooler.Circuits{i}.Refrigerant.Name,...
+        Cooler.Circuits{i}.Temperature);
+    str2 = sprintf(' %d ',Cooler.Circuits{i}.UsedHeatExchangers);
+    str3 = ']';
+    fprintf('%s%s%s\n',str1,str2,str3)
+end
+
+figures.(NG.Name) = figure;
+
+PlotNGnew, hold on
+
+P = [];
+H = [];
+for i = 1:length(Gas.States)
+    P(i) = Gas.States{i}.P;
+    H(i) = Gas.States{i}.H;
+end
+
+plot(H/1e3,P/1e5,'-o','LineWidth',2), hold off
