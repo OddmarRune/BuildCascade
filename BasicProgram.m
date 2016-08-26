@@ -4,7 +4,8 @@ setup
 autodock
 
 t0 = 10;
-T = {[t0-5,-38.443],[-71.499,-102.36],[-129.92,-160]};
+%T = {[t0-5,-38.443],[-71.499,-102.36],[-129.92,-160]};
+T = {[-38.443],[-71.499,-102.36],[-129.92,-160]};
 %T = { -40, -102, -160};
 Refrigerants = {'R290','R1150','R50'};
 
@@ -18,10 +19,10 @@ Options = LazyOptions(Options,DefaultOptions);
 NG  = NaturalGas('NaturalGas'); 
 NG0 = NG.update('P',60e5,'T',kelvin(t0+Options.TemperatureDifference));
 
-figure(1)
-T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
-figure(2)
-T = MyOptimize(NG,NG0,t0,T,Refrigerants,Options);
+%figure(1)
+%T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
+%figure(2)
+%T = MyOptimize(NG,NG0,t0,T,Refrigerants,Options);
 
 MyCascade.(Refrigerants{1}) = T{1};
 MyCascade.(Refrigerants{2}) = T{2};
@@ -36,7 +37,7 @@ COP = (Gas.States{1}.H-Gas.States{end}.H)/SpecificEnergy
 
 kWh_per_ton = SpecificEnergy/3.6e3
 
-
+return 
 
 %figures = struct;
 for i = 1:length(Refrigerants)
