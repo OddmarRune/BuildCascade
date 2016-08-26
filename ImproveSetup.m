@@ -11,6 +11,7 @@ function [ Tout ] = ImproveSetup(t0,T,varargin)
         NG0 = NG.update('P',60e5,'T',kelvin(t0(k)+Options.TemperatureDifference));    
 
         T = OptimizeGenetic(NG,NG0,t0(k),T,Refrigerants,Options);
+        T = MyOptimize(NG,NG0,t0(k),T,Refrigerants,Options);
         TT(k,:) = cell2mat(T);
                     
         Cooler = Cascade(t0(k),T,Refrigerants,Options);
