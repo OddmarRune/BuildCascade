@@ -6,4 +6,16 @@ if ~exist('NG','var') || ~isa(NG,'Mix')
     NG = Mix('NatureGas',fluid,fractions);
 end
 
-NG.update('P',60e5,'T',300)
+p = 60e5;
+T = linspace(-160,20)+273.15;
+h = NG.change('P',p,'T',T).H;
+
+plot(h/1e3,T-273.15), grid on
+
+dT = 5;
+Th = 273.15+15;
+COP = @(Tc) Tc./(Th-Tc);
+
+Tm = (T(1:end-1)+T(2:end))/2;
+
+sum(diff(h)./COP(Tm-dT))/3.6e3
