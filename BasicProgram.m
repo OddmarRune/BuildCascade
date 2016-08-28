@@ -1,13 +1,13 @@
 clear
 setup
 
-t0 = 15;
+t0 = 3;
 T = {[-17.45,-38.443],[-71.499,-102.36],[-129.92,-160]};
 Refrigerants = {'R290','R1150','R50'};
 
 Options.OverHeating = 'on';
 Options.OverHeatTo = 'NextTemperature';  
-Options.Compressor = @Compressor;
+Options.Compressor = @SimpleCompressor;
 Options.OptimizePlot = 'on';
 
 Options = LazyOptions(Options,DefaultOptions);
@@ -15,7 +15,8 @@ Options = LazyOptions(Options,DefaultOptions);
 NG  = NaturalGas('NaturalGas'); 
 NG0 = NG.update('P',60e5,'T',kelvin(t0+Options.TemperatureDifference));
 
-T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
+%T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
+T = MyOptimize(NG,NG0,t0,T,Refrigerants,Options);
 
 MyCascade.(Refrigerants{1}) = T{1};
 MyCascade.(Refrigerants{2}) = T{2};

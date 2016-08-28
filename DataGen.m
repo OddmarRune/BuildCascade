@@ -1,12 +1,13 @@
 % DataGen
 
-% Denne treng i grunnen berre køyrast ein gong kvar gong du startar matlab.
+% Denne treng i grunnen berre kÃ¸yrast ein gong kvar gong du startar matlab.
 clear 
 setup
 
-Options.MaxGenerations = 100;
+Options.MaxGenerations = 50;
 Options.GeneticDisplay = 'off';
-Options.Compressor     = @(R,P1,p2)SimpleCompressor(R,P1,p2,'eta',0.85);
+% Options.Compressor     = @(R,P1,p2)SimpleCompressor(R,P1,p2,'eta',0.85);
+Options.Compressor     = @SimpleCompressor;
 
 % Options.Compressor     = @Compressor;
 % Options.OverHeatTo     = 'NextTemperature';

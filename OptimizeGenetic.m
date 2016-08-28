@@ -37,10 +37,16 @@ function [ Tout ] = OptimizeGenetic(NG,NG0,t0,T,Refrigerants, varargin)
         
     fun = @(x) CalculateEverything(NG,NG0,t0, Tlike([x tmin],T),Refrigerants,Options)/3.6e3;               
     
-    InitialList = ReadFromLog(Options,MyCascade,t0,'galog.txt');
+    InitialList = ReadFromLog(Options,MyCascade,t0,'galog.txt',...
+        'OptionMatch','none','AmbientTemperatureMatch','Approx');
     X0 = x0(:)';
     for i = 1:length(InitialList)
-        X0 = [X0;(InitialList{i}(:))'];
+        y0 = [];
+        for k = 1:length(InitialList{i})
+            y0 = [y0 sort(InitialList{i}{k},'descend')];
+        end
+        y0 = y0(y0>min(y0));
+        X0 = [X0;(y0(:))'];
     end
     
     orig_state = warning;
