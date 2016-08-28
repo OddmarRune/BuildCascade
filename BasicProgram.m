@@ -8,11 +8,14 @@ Refrigerants = {'R290','R1150','R50'};
 Options.OverHeating = 'on';
 Options.OverHeatTo = 'NextTemperature';  
 Options.Compressor = @Compressor;
+Options.OptimizePlot = 'on';
 
 Options = LazyOptions(Options,DefaultOptions);
 
 NG  = NaturalGas('NaturalGas'); 
 NG0 = NG.update('P',60e5,'T',kelvin(t0+Options.TemperatureDifference));
+
+T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
 
 MyCascade.(Refrigerants{1}) = T{1};
 MyCascade.(Refrigerants{2}) = T{2};

@@ -9,6 +9,10 @@ function [ TemperatureSetup ] = ReadFromLog( Options, MyCascade, AmbientTemperat
     
     TemperatureSetup = {};
     
+    if fid<0
+        return
+    end
+    
     Refrigerants = fields(MyCascade);
     A = zeros(1,length(Refrigerants));
     for i = 1:length(Refrigerants)
