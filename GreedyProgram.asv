@@ -3,7 +3,7 @@ clear
 close all
 setup
 
-t0 = 20;
+t0 = 10;
 %T = {[10,-38.443],[-71.499,-102.36],[-129.92,-160]};
 
 TempVec = -159:2:(t0-1);
@@ -39,7 +39,7 @@ while (MinEnergy/3.6e3)>200 && n<steps
     figure(MyFig)
     plot(TempVec,Energies/3.6e3,MinTemperature,MinEnergy/3.6e3,'o')    
     fprintf('%2d: adding a step to refrigerant nr %d at temperature %.3g \n',n,MinIndex,MinTemperature)
-    %T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
+    T = OptimizeGenetic(NG,NG0,t0,T,Refrigerants,Options);
     T = MyOptimize(NG,NG0,t0,T,Refrigerants,Options);    
 end
 

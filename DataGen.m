@@ -1,6 +1,6 @@
 % DataGen
 
-% Denne treng i grunnen berre kÃ¸yrast ein gong kvar gong du startar matlab.
+% Denne treng i grunnen berre køyrast ein gong kvar gong du startar matlab.
 clear 
 setup
 
@@ -10,7 +10,7 @@ Options.GeneticDisplay = 'off';
 Options.Compressor     = @SimpleCompressor;
 Options.OverHeating     = 'off';
 
-% Options.Compressor     = @Compressor;
+% Options.Compressor     = @Compressor;clos
 % Options.OverHeatTo     = 'NextTemperature';
 % Options.OptimizePlot   = 'off';
 % Options.PressureDrop          = 0.5e5;
@@ -24,4 +24,4 @@ T222 = {[ -29.959, -40.227 ], [ -75.027, -101.52 ], [ -128.93, -160 ]};
 
 ImproveSetup(AmbientTemperatures,T222,Options)
 ImproveSetup(AmbientTemperatures,T111,Options)
-ImproveSetup(AmbientTemperatures,T122,Options)
+% ImproveSetup(AmbientTemperatures,T122,Options)

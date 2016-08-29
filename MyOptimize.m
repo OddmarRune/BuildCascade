@@ -48,4 +48,3 @@ function [ Tout ] = MyOptimize(NG,NG0,t0,T,Refrigerants, varargin)
     end
     AppendToLog(Options,MyCascade,t0,'galog.txt');
 end
-
