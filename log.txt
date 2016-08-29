@@ -1,0 +1,23 @@
+# Options
+                    Compressor : Compressor
+        EvaporatorPressureDrop : 0 
+                GeneticDisplay : final
+                MaxGenerations : 50 
+               MinimumPressure : 110000 
+                  OptimizePlot : on
+                   OverHeating : on
+       OverHeatingPressureDrop : 0 
+                    OverHeatTo : NextTemperature
+                  PressureDrop : 50000 
+         TemperatureDifference : 5 
+
+# Setup
+            AmbientTemperature : 10
+                  Refrigerants :     R290    R1150      R50
+                ExchangerSetup :        2        2        2
+
+# Cascade
+      R290 : -17.45 -38.443 
+     R1150 : -71.499 -102.36 
+       R50 : -129.92 -160 
+
