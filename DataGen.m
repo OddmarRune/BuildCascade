@@ -8,6 +8,7 @@ Options.MaxGenerations = 50;
 Options.GeneticDisplay = 'off';
 % Options.Compressor     = @(R,P1,p2)SimpleCompressor(R,P1,p2,'eta',0.85);
 Options.Compressor     = @SimpleCompressor;
+Options.OverHeating     = 'off';
 
 % Options.Compressor     = @Compressor;clos
 % Options.OverHeatTo     = 'NextTemperature';
