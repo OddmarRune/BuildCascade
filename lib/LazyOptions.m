@@ -1,4 +1,11 @@
 function [ options ] = LazyOptions( input, varargin )
+    if iscell(input) && isstruct(input{1}) && isfield(input{1},'AlreadyParsed') && input{1}.AlreadyParsed
+        options = input{1};
+        return
+    elseif isstruct(input) && isfield(input,'AlreadyParsed') && input.AlreadyParsed
+        options = input;
+        return
+    end
     p = inputParser;
     if length(varargin)==1
         list = fields(varargin{1});
@@ -22,7 +29,7 @@ function [ options ] = LazyOptions( input, varargin )
         end
     end    
     
-    if isa(input,'struct')        
+    if isa(input,'struct')
         list = fields(input);
         Input = {};
         for k = 1:length(list)            
@@ -35,5 +42,5 @@ function [ options ] = LazyOptions( input, varargin )
     end    
     p.parse(Input{:});
     options = p.Results;
+    options.AlreadyParsed = true;
 end
-
